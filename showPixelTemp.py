@@ -7,15 +7,12 @@ def showPixelValue(event, x, y, flags, param):
     
     if event == cv2.EVENT_MOUSEMOVE:
         bgr = img[y, x]
-        temperature = t_min + ((bgr[-1] + bgr[1])/510)*(t_max-t_min)
-        print(str(temperature) + '=' + str(t_min) + '+' + '('+ str(bgr[-1]) + '+' + str(bgr[1]) + ')' + '/' + '510' + '*(' + str(t_min) + '-' +  str(t_min) + ')')
-        
+        temperature = t_min + ((int(bgr[2]) + int(bgr[1]))/(510))*(t_max-t_min)
         temperature = round(temperature, 2)
         placeholder = np.zeros((img.shape[0], 400, 3), dtype=np.uint8)
-        cv2.putText(placeholder, 'temp = {}'.format(temperature), (20, 70), cv2.FONT_HERSHEY_COMPLEX, .9, (255,255,255), 1, cv2.LINE_AA)
-        cv2.putText(placeholder, "BGR {}".format(bgr), (20, 140), cv2.FONT_HERSHEY_COMPLEX, .9, (255,255,255), 1, cv2.LINE_AA)
+        cv2.putText(placeholder, 'temp = {} C'.format(temperature), (20, 70), cv2.FONT_HERSHEY_COMPLEX, .9, (0,255,0), 1, cv2.LINE_AA)
         combinedResult = np.hstack([img, placeholder])
-        cv2.imshow('Img', combinedResult)
+        cv2.imshow('Image', combinedResult)
         
 global img, t_max, t_min
 
@@ -33,8 +30,8 @@ t_max = float(fl[i][2])
 t_min = float(fl[i][1])
 
     
-cv2.namedWindow('Img')
-cv2.setMouseCallback('Img', showPixelValue)
+cv2.namedWindow('Image')
+cv2.setMouseCallback('Image', showPixelValue)
 temp = img.copy()
 k = 0
 while k!=113:

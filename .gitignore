@@ -1,4 +1,5 @@
 /.env
 /images
 /file
+/docs
 /__pycache__

@@ -11,4 +11,3 @@ def readTemp(filename):
             hotpoint = raw[5].replace(',','.')
             fl.append((fileName, coldPoint, hotpoint))
     return fl
-

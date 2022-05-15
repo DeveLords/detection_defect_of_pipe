@@ -1,21 +1,19 @@
 import cv2
 import numpy as np
 
-# Функция позволяет определеить среднее значение матрицы, 
-# в случае, если среднее значение уже определено, 
-# то можно передать в эту функцию второй параметр, 
-# являющися значением, расчитанным по этой же функции
-def findMean(matrixSum, matrixMean= None, oper= None): 
+
+# Функция позволяет определеить среднее значение
+def findMean(matrixSum, matrixMean=None, oper=None):
     lenght = 0
     summa = 0
-    if matrixMean == None:
+    if matrixMean is None:
         for i in range(len(matrixSum)):
             for j in range(len(matrixSum[i])):
                 if matrixSum[i][j]:
                     summa += matrixSum[i][j]
                     lenght += 1
     else:
-        if oper == None or oper == '>':
+        if oper == '>' or oper is None:
             for i in range(len(matrixSum)):
                 for j in range(len(matrixSum[i])):
                     if matrixSum[i][j] > matrixMean:
@@ -30,10 +28,15 @@ def findMean(matrixSum, matrixMean= None, oper= None):
     mean = summa / lenght
     return mean, lenght
 
-#Функция перевода из rgb в температуру по палитре горячий металл  
+
+# Функция перевода из rgb в температуру по палитре горячий металл
 def rgbToTemperature(rg, tMin, tMax):
-    temp = tMin + rg / 510 * (tMax - tMin)
+    if isinstance(rg, tuple) or isinstance(rg, list):
+        temp = tMin + (rg[-1] + rg[-2])/510 * (tMax - tMin)
+    else:
+        temp = tMin + rg / 510 * (tMax - tMin)
     return temp
+
 
 # Поиск области в пределах конкретных температур
 def findArea(originalImage, matrixSumRGB, mean):
@@ -42,6 +45,7 @@ def findArea(originalImage, matrixSumRGB, mean):
             if matrixSumRGB[i][j] < mean:
                 originalImage[i][j] = [0, 0, 0]
     return originalImage
+
 
 # Объединенеие изображений по требуемым пределам
 def combineImage(originalImage, infraImage):
@@ -52,10 +56,10 @@ def combineImage(originalImage, infraImage):
     for i in range(len(infraImage)):
         for j in range(len(infraImage[i])):
             if infraImage[i][j].sum():
-                rgb = infraImage[i][j]
-                originalImage[x+i][y+j] = rgb
-    return originalImage        
-    
+                originalImage[x+i][y+j] = infraImage[i][j]
+    return originalImage
+
+
 visible = cv2.imread('images/visible/IR000002.bmp')
 original = cv2.imread('images/infrared/IR000002.bmp')
 mask = cv2.imread('images/mask/IR000002.bmp')
@@ -64,9 +68,9 @@ mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
 
 _, threshMask = cv2.threshold(mask, 150, 255, cv2.THRESH_BINARY)
 
-combinedImage = cv2.bitwise_and(original, original, mask= threshMask)
+combinedImage = cv2.bitwise_and(original, original, mask=threshMask)
 
-matrixSumrgb = np.zeros((240, 320), dtype= np.uint16)
+matrixSumrgb = np.zeros((240, 320), dtype=np.uint16)
 
 for i in range(len(combinedImage)):
     for j in range(len(combinedImage[i])):
@@ -77,6 +81,9 @@ meanCold, lenCold = findMean(matrixSumrgb, imgMean, '>')
 meanHot, lenHot = findMean(matrixSumrgb, imgMean, '<')
 
 temp = rgbToTemperature(imgMean, 21, 70)
+print(f"Преобразование ргб в температуру заранее проссумировано{temp}")
+temp2 = rgbToTemperature([0, 0, imgMean], 21, 70)
+print(f"Преобразование передан как кортеж бгр{temp2}")
 tempMeanCold = rgbToTemperature(meanCold, 21, 70)
 tempMeanHot = rgbToTemperature(meanHot, 21, 70)
 
@@ -84,10 +91,8 @@ newImage = findArea(combinedImage, matrixSumrgb, meanCold)
 
 combImage = combineImage(visible, newImage)
 
-cv2.imshow('newImage', newImage)
-cv2.imshow('original', original)
-cv2.imshow('visible', visible)
-cv2.imshow('combImage', combImage)
-cv2.waitKey(0)
-
-
+# cv2.imshow('newImage', newImage)
+# cv2.imshow('original', original)
+# cv2.imshow('visible', visible)
+# cv2.imshow('combImage', combImage)
+# cv2.waitKey(0)
